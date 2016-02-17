@@ -18,7 +18,7 @@ def main():
   #  print attributes
     #need to pass only the non-target attributes without any attribute headers and that one empty line
     data.remove(data[0])
-  #  data.remove(data[0])
+    data.remove(data[0])
     #Run ID3
    # print data
     tree = DecisionTree.makeTree(data, attributes, target, 0)
