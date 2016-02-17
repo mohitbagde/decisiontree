@@ -32,26 +32,52 @@ def majority(attributes, data, target):
 def entropy(attributes, data, targetAttr, i):
 
     valFreq = {}
+    posFreq = {}
+    negFreq = {}
     dataEntropy = 0.0
-    
+  #  print targetAttr
     #find index of the target attribute
   #  i = 0
-  #  for entry in attributes:
-   #     if (targetAttr == entry):
-   #         break
-    #    ++i
-    print "len=",len(data)
+   # for entry in attributes:
+    #    if (targetAttr == entry):
+    #        break
+    #    i=i+1
+    print i
     # Calculate the frequency of each of the values in the target attr
     for entry in data:
+        #print entry[len(attributes)-1]
         if (valFreq.has_key(entry[i])):
             valFreq[entry[i]] += 1.0
         else:
             valFreq[entry[i]]  = 1.0
-    print valFreq
+  #  print valFreq
+    for entry in data:
+        if entry[len(attributes)-1] == 'Yes':
+            if (posFreq.has_key(entry[i])):
+                posFreq[entry[i]] += 1.0
+            else:
+                posFreq[entry[i]] = 1.0
+        else:
+            if (negFreq.has_key(entry[i])):
+                negFreq[entry[i]] += 1.0
+            else:
+                negFreq[entry[i]] = 1.0
+
     # Calculate the entropy of the data for the target attr
-    for freq in valFreq.values():
-        dataEntropy += (-freq/len(data)) * math.log(freq/len(data), 2) 
-    #    print "entropy", dataEntropy
+  #  print valFreq
+    for i,j,k in zip(valFreq, posFreq, negFreq):
+   #     print valFreq, valFreq[i], posFreq[j], negFreq[k]
+     #   if(posFreq[j] == 0):
+      #      dataEntropy 
+        dataEntropy = -(valFreq[i]/len(data) * 
+        (posFreq[j]/valFreq[i]*math.log(posFreq[j]/valFreq[i],2)) 
+        + (negFreq[k]/valFreq[i]* math.log(negFreq[k]/valFreq[i],2)))
+#    for freq in valFreq.values():
+      #   print valFreq, freq, len(data), freq/len(data)
+      #   print (-freq/len(data)) * math.log(freq/len(data), 2) 
+  #       dataEntropy += (-freq/len(data)) * math.log(freq/len(data), 2) 
+      #   print valFreq,dataEntropy
+      #   print dataEntropy
     return dataEntropy
 
 def gain(attributes, data, attr, targetAttr):
@@ -61,38 +87,65 @@ def gain(attributes, data, attr, targetAttr):
     """
     valFreq = {}
     subsetEntropy = 0.0
-    
+    posFreq = {}
+    negFreq = {}
     #find index of the attribute
     i = attributes.index(attr)
-
     # Calculate the frequency of each of the values in the target attribute
     for entry in data:
         if (valFreq.has_key(entry[i])):
             valFreq[entry[i]] += 1.0
         else:
             valFreq[entry[i]]  = 1.0
+    print valFreq
     # Calculate the sum of the entropy for each subset of records weighted
     # by their probability of occuring in the training set.
+#    print valFreq
+    for entry in data:
+      #  print entry[len(attributes)-1]
+        if entry[len(attributes)-1] == 'Yes':
+            if (posFreq.has_key(entry[i])):
+                posFreq[entry[i]] += 1.0
+            else:
+                posFreq[entry[i]] = 1.0
+        else:
+            if (negFreq.has_key(entry[i])):
+                negFreq[entry[i]] += 1.0
+            else:
+                negFreq[entry[i]] = 1.0
     for val in valFreq.keys():
+        print val
         valProb        = valFreq[val] / sum(valFreq.values())
         dataSubset     = [entry for entry in data if entry[i] == val]
-        subsetEntropy += valProb * entropy(attributes, dataSubset, targetAttr, i)
-        print "curr child ", val, subsetEntropy
+        print len(dataSubset)
+     #   print len(dataSubset)
+        logfunc = entropy(attributes, dataSubset, targetAttr, i)
+    #    logfunc = 0
+  #      print val, valProb, logfunc, len(dataSubset)
+        subsetEntropy += valProb * logfunc
+        print "child", subsetEntropy
+ ##   print valFreq, subsetEntropy
     # Subtract the entropy of the chosen attribute from the entropy of the
     # whole data set with respect to the target attribute (and return it)
-   # parentEntropy = entropy(attributes, data, targetAttr)
-    parentEntropy = 0.94
-    gain = parentEntropy - subsetEntropy
-    print "parent = ",parentEntropy,"gain =",subsetEntropy
-   # return (entropy(attributes, data, targetAttr) - subsetEntropy)
-    return gain 
+    p = sum(posFreq.values())/ sum(valFreq.values())
+    n = sum(negFreq.values())/ sum(valFreq.values())
+
+    entropyParent =  -(p*math.log(p,2)+ n*math.log(n,2))
+   # entropyParent = entropy(attributes, data, targetAttr) 
+    print "parent", entropyParent
+    entropyGain = entropyParent - subsetEntropy
+    print "end of entropy", "gain =", entropyGain
+    return entropyGain
+
 #choose best attibute 
 def chooseAttr(data, attributes, target):
     best = attributes[0]
+
     maxGain = 0;
-    for attr in attributes:
-        print "attr = ", attr
+    for attr in attributes[:-1]:
+        print "current attr = ", attr
         newGain = gain(attributes, data, attr, target) 
+       # print attr, newGain
         if newGain>maxGain:
             maxGain = newGain
             best = attr
@@ -141,7 +194,6 @@ def makeTree(data, attributes, target, recursion):
     else:
         # Choose the next best attribute to best classify our data
         best = chooseAttr(data, attributes, target)
-
         # Create a new decision tree/node with the best attribute and an empty
         # dictionary object--we'll fill that up next.
         tree = {best:{}}

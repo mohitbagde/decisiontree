@@ -3,9 +3,9 @@ import pprint
 
 def main():
     #Insert input file
-    file = open('WeatherTraining.csv')
+    file = open('dt-data.txt')
     #class attribute
-    target = "play"
+    target = "Enjoy"
     data = [[]]
     for line in file:
         #cleaning the data
